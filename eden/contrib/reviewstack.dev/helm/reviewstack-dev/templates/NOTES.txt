@@ -1,0 +1,2 @@
+1. Deploy the image built from this repo (default tag: reviewstack-dev:local).
+2. If you are using an Ingress, set ingress.enabled=true and configure hosts.
