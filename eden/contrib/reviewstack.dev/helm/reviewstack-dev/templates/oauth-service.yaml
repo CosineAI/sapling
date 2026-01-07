@@ -1,0 +1,18 @@
+{{- if .Values.oauthService.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "reviewstack-dev.fullname" . }}-oauth
+  labels:
+    {{- include "reviewstack-dev.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.oauthService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: oauth
+    {{- include "reviewstack-dev.selectorLabels" . | nindent 4 }}
+{{- end }}

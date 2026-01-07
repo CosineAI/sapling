@@ -10,14 +10,17 @@ import type {CustomLoginDialogProps} from 'reviewstack/src/LoginDialog';
 
 import './DefaultLoginDialog.css';
 
+import {getRuntimeConfig} from './runtimeConfig';
 import {Box, Link, Text} from '@primer/react';
 import {useCallback, useState} from 'react';
 
 export default function LoginDialog({
   setTokenAndHostname,
 }: CustomLoginDialogProps): React.ReactElement | null {
+  const config = getRuntimeConfig();
+  const defaultHostname = config.auth?.hostname ?? 'github.com';
   const [token, setToken] = useState('');
-  const [hostname, setHostname] = useState('github.com');
+  const [hostname, setHostname] = useState(defaultHostname);
 
   const onChangeToken = useCallback(
     (e: ChangeEvent) => setToken((e.target as HTMLInputElement).value),

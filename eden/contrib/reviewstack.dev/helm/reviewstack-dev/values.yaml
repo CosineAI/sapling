@@ -9,6 +9,26 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+config:
+  enabled: true
+  createSecret: true
+  existingSecret: ""
+  secretKey: "config.js"
+  data:
+    auth:
+      mode: "pat"
+      hostname: "github.com"
+      allowPatFallback: true
+      oauth:
+        authorizeUrl: ""
+        clientId: ""
+        scope: "user repo"
+        provider: "github"
+        extraParams: {}
+        tokenParam: "token"
+        errorParam: "error"
+        callbackPath: "/oauth-callback.html"
+
 serviceAccount:
   create: false
   name: ""
@@ -51,6 +71,40 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
+
+oauthService:
+  enabled: false
+  image:
+    repository: reviewstack-oauth
+    tag: local
+    pullPolicy: IfNotPresent
+  service:
+    port: 8081
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: oauth.reviewstack.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  env:
+    githubBaseUrl: "https://github.com"
+    githubAuthorizePath: "/login/oauth/authorize"
+    githubTokenPath: "/login/oauth/access_token"
+    githubScope: "user repo"
+    frontendOrigin: "https://reviewstack.example.com"
+    oauthServiceOrigin: "https://oauth.reviewstack.example.com"
+    frontendCallbackPath: "/oauth-callback.html"
+  secret:
+    create: true
+    existingSecret: ""
+    clientIdKey: "githubClientId"
+    clientSecretKey: "githubClientSecret"
+    clientId: ""
+    clientSecret: ""
 
 nodeSelector: {}
 tolerations: []

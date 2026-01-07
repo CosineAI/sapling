@@ -35,3 +35,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "reviewstack-dev.configSecretName" -}}
+{{- if .Values.config.existingSecret -}}
+{{- .Values.config.existingSecret -}}
+{{- else -}}
+{{- printf "%s-config" (include "reviewstack-dev.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "reviewstack-dev.oauthSecretName" -}}
+{{- if .Values.oauthService.secret.existingSecret -}}
+{{- .Values.oauthService.secret.existingSecret -}}
+{{- else -}}
+{{- printf "%s-oauth" (include "reviewstack-dev.fullname" .) -}}
+{{- end -}}
+{{- end -}}

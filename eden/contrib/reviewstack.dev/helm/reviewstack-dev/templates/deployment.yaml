@@ -40,6 +40,13 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          {{- if .Values.config.enabled }}
+          volumeMounts:
+            - name: runtime-config
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: {{ .Values.config.secretKey }}
+              readOnly: true
+          {{- end }}
           readinessProbe:
             httpGet:
               path: /
@@ -50,6 +57,12 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.config.enabled }}
+      volumes:
+        - name: runtime-config
+          secret:
+            secretName: {{ include "reviewstack-dev.configSecretName" . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

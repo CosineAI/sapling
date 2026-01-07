@@ -1,0 +1,35 @@
+{{- if and .Values.oauthService.enabled .Values.oauthService.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "reviewstack-dev.fullname" . }}-oauth
+  labels:
+    {{- include "reviewstack-dev.labels" . | nindent 4 }}
+  {{- with .Values.oauthService.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.oauthService.ingress.className }}
+  ingressClassName: {{ .Values.oauthService.ingress.className }}
+  {{- end }}
+  rules:
+    {{- range .Values.oauthService.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "reviewstack-dev.fullname" $ }}-oauth
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+  {{- with .Values.oauthService.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

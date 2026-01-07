@@ -1,0 +1,1 @@
+window.REVIEWSTACK_CONFIG = {};

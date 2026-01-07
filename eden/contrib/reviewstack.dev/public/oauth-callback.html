@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ReviewStack OAuth Callback</title>
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var config = window.REVIEWSTACK_CONFIG || {};
+        var auth = config.auth || {};
+        var oauth = auth.oauth || {};
+        var tokenParam = oauth.tokenParam || 'token';
+        var errorParam = oauth.errorParam || 'error';
+
+        function readParam(name) {
+          var hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+          var queryParams = new URLSearchParams(window.location.search.replace(/^\?/, ''));
+          return hashParams.get(name) || queryParams.get(name) || null;
+        }
+
+        var token =
+          readParam(tokenParam) || readParam('access_token') || readParam('token');
+        var error = readParam(errorParam) || readParam('error');
+        var state = readParam('state');
+
+        if (window.opener && window.opener !== window) {
+          window.opener.postMessage(
+            {
+              type: 'reviewstack.oauth',
+              token: token,
+              error: error,
+              state: state,
+            },
+            window.location.origin,
+          );
+        }
+
+        window.close();
+      })();
+    </script>
+  </body>
+</html>

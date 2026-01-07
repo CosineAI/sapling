@@ -1,0 +1,63 @@
+{{- if .Values.oauthService.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reviewstack-dev.fullname" . }}-oauth
+  labels:
+    {{- include "reviewstack-dev.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: oauth
+      {{- include "reviewstack-dev.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: oauth
+        {{- include "reviewstack-dev.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: oauth
+          image: "{{ .Values.oauthService.image.repository }}:{{ .Values.oauthService.image.tag }}"
+          imagePullPolicy: {{ .Values.oauthService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.oauthService.service.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.oauthService.service.port }}"
+            - name: FRONTEND_ORIGIN
+              value: "{{ .Values.oauthService.env.frontendOrigin }}"
+            - name: OAUTH_SERVICE_ORIGIN
+              value: "{{ .Values.oauthService.env.oauthServiceOrigin }}"
+            - name: FRONTEND_CALLBACK_PATH
+              value: "{{ .Values.oauthService.env.frontendCallbackPath }}"
+            - name: GITHUB_BASE_URL
+              value: "{{ .Values.oauthService.env.githubBaseUrl }}"
+            - name: GITHUB_AUTHORIZE_PATH
+              value: "{{ .Values.oauthService.env.githubAuthorizePath }}"
+            - name: GITHUB_TOKEN_PATH
+              value: "{{ .Values.oauthService.env.githubTokenPath }}"
+            - name: GITHUB_SCOPE
+              value: "{{ .Values.oauthService.env.githubScope }}"
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "reviewstack-dev.oauthSecretName" . }}
+                  key: {{ .Values.oauthService.secret.clientIdKey }}
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "reviewstack-dev.oauthSecretName" . }}
+                  key: {{ .Values.oauthService.secret.clientSecretKey }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+{{- end }}
