@@ -5,19 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {ChangeEvent, FormEvent} from 'react';
 import type {CustomLoginDialogProps} from 'reviewstack/src/LoginDialog';
 
 import Footer from './Footer';
 import {getRuntimeConfig} from './runtimeConfig';
-import {Box, Button, Heading, Text, TextInput} from '@primer/react';
-import React, {useCallback, useMemo, useState} from 'react';
+import {Box, Button, Heading, Text} from '@primer/react';
+import React, {useCallback, useState} from 'react';
 import AppHeader from 'reviewstack/src/AppHeader';
 
 export default function OAuthLoginDialog(props: CustomLoginDialogProps): React.ReactElement {
   const config = getRuntimeConfig();
   const hostname = config.auth?.hostname ?? 'github.com';
-  const allowPatFallback = config.auth?.allowPatFallback ?? true;
 
   return (
     <Box display="flex" flexDirection="column" height="100vh">
@@ -28,7 +26,6 @@ export default function OAuthLoginDialog(props: CustomLoginDialogProps): React.R
         <Box paddingX={3} paddingY={2} maxWidth={900}>
           <Heading>Welcome to ReviewStack</Heading>
           <OAuthButton hostname={hostname} {...props} />
-          {allowPatFallback ? <PatFallback hostname={hostname} {...props} /> : null}
         </Box>
       </Box>
       <Footer />
@@ -71,81 +68,6 @@ function OAuthButton({
       <Button onClick={onClick} disabled={isButtonDisabled}>
         Authorize with OAuth
       </Button>
-    </Box>
-  );
-}
-
-function PatFallback({
-  setTokenAndHostname,
-  hostname,
-}: CustomLoginDialogProps & {hostname: string}): React.ReactElement {
-  const [patHostname, setHostname] = useState(hostname);
-  const [token, setToken] = useState('');
-
-  const onChangeHostname = useCallback(
-    (e: ChangeEvent) => setHostname((e.target as HTMLInputElement).value),
-    [],
-  );
-  const onChangeToken = useCallback(
-    (e: ChangeEvent) => setToken((e.target as HTMLInputElement).value),
-    [],
-  );
-
-  const onSubmit = useCallback(
-    (e: FormEvent) => {
-      e.preventDefault();
-      setTokenAndHostname(token.trim(), patHostname.trim());
-      return false;
-    },
-    [token, patHostname, setTokenAndHostname],
-  );
-
-  const isInputValid = useMemo(() => {
-    if (token.trim() === '') {
-      return false;
-    }
-    const normalizedHostname = patHostname.trim();
-    return normalizedHostname !== '' && normalizedHostname.indexOf('.') !== -1;
-  }, [patHostname, token]);
-
-  return (
-    <Box>
-      <Heading as="h3" sx={{fontSize: 3, mb: 2}}>
-        Use a Personal Access Token
-      </Heading>
-      <Text as="p" pb={2}>
-        If you prefer, you can provide a GitHub Personal Access Token (PAT) instead of OAuth.
-      </Text>
-      <form onSubmit={onSubmit}>
-        <Box pb={2}>
-          GitHub Hostname: <br />
-          <TextInput
-            value={patHostname}
-            onChange={onChangeHostname}
-            sx={{width: '400px'}}
-            monospace
-            aria-label="hostname"
-            placeholder="github.com"
-          />
-        </Box>
-        <Box pb={2}>
-          Personal Access Token: <br />
-          <TextInput
-            value={token}
-            onChange={onChangeToken}
-            type="password"
-            sx={{width: '400px'}}
-            monospace
-            aria-label="personal access token"
-            placeholder="github_pat_abcdefg123456789"
-          />
-        </Box>
-        <Box paddingY={2}>
-          <Button disabled={!isInputValid} type="submit">
-            Use Personal Access Token
-          </Button>
-        </Box>
-      </form>
     </Box>
   );
 }
@@ -226,7 +148,9 @@ function fetchOAuthToken(config: ReturnType<typeof getRuntimeConfig>): Promise<s
       window.removeEventListener('message', handleMessage);
       window.clearTimeout(timeoutId);
       try {
-        popup.close();
+        if (popup) {
+          popup.close();
+        }
       } catch (e) {
         // Ignore cleanup failures.
       }
